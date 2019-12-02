@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import scipy.signal as sps
+import pandas as pd
 import numpy as np
 import math
 
@@ -13,7 +14,7 @@ that can predict the squence given.
 '''
 class PredictionModel(object):
 
-    def __init__(self, x_n, coefficients, optimal_coefficients):
+    def __init__(self, x_n, coefficients, optimal_coefficients=[]):
         self.x_n = np.array(x_n) # x[n]
         self.x_hat = 0 # x^[n]
         self.error = 0 # e[n]
@@ -34,6 +35,23 @@ class PredictionModel(object):
         denominator = [1]
         self.error = sps.lfilter(numerator, denominator, self.x_n) # E(z) = A(z)X(z)
         self.x_hat = self.x_n - self.error # x_hat[n] = x[n] – e[n]
+
+    def quantizeError(self):
+        perr = []
+
+        MIN_VALUE = min(self.error)
+        MAX_VALUE = max(self.error)
+        NO_BINS = 5
+
+        # Create bin edges
+        bins = np.arange(MIN_VALUE,MAX_VALUE, (MAX_VALUE-MIN_VALUE)/NO_BINS)
+
+        # Get bin values
+        _, bin_val = np.histogram(numbers, NO_BINS-1, range=(MIN_VALUE, MAX_VALUE))
+
+        # Change the values to the bin value
+        for iter_bin in range(1,NO_BINS+1):
+            numbers[np.where(digits == iter_bin)] = bin_val[iter_bin-1]
 
     def printPrediction(self):
         print("x[n] Values:  ", self.x_n)
@@ -117,6 +135,18 @@ class PredictionModel(object):
                 newCoe.append(c)
 
         return newCoe
+
+
+    def Quantizer2bin(self, list):
+        MIN_VALUE = min(list)
+        MAX_VALUE = max(list)
+        NO_BINS = 5  # default bin size
+
+        bins = np.arange(MIN_VALUE,MAX_VALUE, (MAX_VALUE-MIN_VALUE)/NO_BINS)
+        _, bin_val = np.histogram(liscmdt, NO_BINS-1, range=(MIN_VALUE, MAX_VALUE))
+        arr = pd.cut(list, NO_BINS, right=False, labels=bins)
+
+        return arr
 
     def plotCoefficients(self, coefficients):
         plt.figure(figsize=[15,25])
